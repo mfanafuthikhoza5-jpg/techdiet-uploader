@@ -1,21 +1,26 @@
 name: Upload IPA to App Store Connect
 
 on:
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+  workflow_dispatch:
+    inputs:
+      ipa_url:
+        description: 'Direct link to your IPA file'
+        required: true
 
 jobs:
   upload:
     runs-on: macos-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Download IPA
+        run: |
+          curl -L -o ios-build.ipa "${{ github.event.inputs.ipa_url }}"
 
       - name: Setup Apple API Key
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
           echo "${{ secrets.APPSTORE_PRIVATE_KEY }}" > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
 
-      - name: Upload IPA to TestFlight / App Store Connect
+      - name: Upload IPA to App Store Connect
         run: |
           xcrun altool --upload-app \
             --type ios \
